@@ -58,30 +58,30 @@ K4AROSDevice::K4AROSDevice()
   static const std::string compressed_png_level = "/compressed/png_level";
 
   // Declare node parameters
-  this->declare_parameter("depth_enabled");
-  this->declare_parameter("depth_mode");
-  this->declare_parameter("color_enabled");
-  this->declare_parameter("color_format");
-  this->declare_parameter("color_resolution");
-  this->declare_parameter("fps");
-  this->declare_parameter("point_cloud");
-  this->declare_parameter("rgb_point_cloud");
-  this->declare_parameter("point_cloud_in_depth_frame");
-  this->declare_parameter("required");
-  this->declare_parameter("sensor_sn");
-  this->declare_parameter("recording_file");
-  this->declare_parameter("recording_loop_enabled");
-  this->declare_parameter("body_tracking_enabled");
-  this->declare_parameter("body_tracking_smoothing_factor");
-  this->declare_parameter("rescale_ir_to_mono8");
-  this->declare_parameter("ir_mono8_scaling_factor");
-  this->declare_parameter("imu_rate_target");
-  this->declare_parameter("wired_sync_mode");
-  this->declare_parameter("subordinate_delay_off_master_usec");
-  this->declare_parameter({depth_raw_topic + compressed_format});
-  this->declare_parameter({depth_raw_topic + compressed_png_level});
-  this->declare_parameter({depth_rect_topic + compressed_format});
-  this->declare_parameter({depth_rect_topic + compressed_png_level});
+  this->declare_parameter<bool>("depth_enabled", true);
+  this->declare_parameter<std::string>("depth_mode", "WFOV_UNBINNED");
+  this->declare_parameter<bool>("color_enabled", true);
+  this->declare_parameter<std::string>("color_format", "bgra");
+  this->declare_parameter<std::string>("color_resolution", "1536P");
+  this->declare_parameter<int>("fps", 5);
+  this->declare_parameter<bool>("point_cloud", true);
+  this->declare_parameter<bool>("rgb_point_cloud", true);
+  this->declare_parameter<bool>("point_cloud_in_depth_frame", "false");
+  this->declare_parameter<bool>("required", false);
+  this->declare_parameter<std::string>("sensor_sn", "");
+  this->declare_parameter<std::string>("recording_file", "");
+  this->declare_parameter<bool>("recording_loop_enabled", false);
+  this->declare_parameter<bool>("body_tracking_enabled", "false");
+  this->declare_parameter<float>("body_tracking_smoothing_factor", 0.0);
+  this->declare_parameter<bool>("rescale_ir_to_mono8", false);
+  this->declare_parameter<double>("ir_mono8_scaling_factor", 1.0);
+  this->declare_parameter<int>("imu_rate_target", 0);
+  this->declare_parameter<int>("wired_sync_mode", 0);
+  this->declare_parameter<int>("subordinate_delay_off_master_usec", 0);
+  this->declare_parameter<std::string>({depth_raw_topic + compressed_format}, "");
+  this->declare_parameter<std::string>({depth_raw_topic + compressed_png_level}, "");
+  this->declare_parameter<std::string>({depth_rect_topic + compressed_format}, "");
+  this->declare_parameter<std::string>({depth_rect_topic + compressed_png_level}, "");
 
   // Collect ROS parameters from the param server or from the command line
 #define LIST_ENTRY(param_variable, param_help_string, param_type, param_default_val) \
@@ -781,7 +781,7 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, std::shared_p
 
   // Set the lifetime to 0.25 to prevent flickering for even 5fps configurations.
   // New markers with the same ID will replace old markers as soon as they arrive.
-  marker_msg->lifetime = rclcpp::Duration(0.25);
+  marker_msg->lifetime = rclcpp::Duration(std::chrono::microseconds(1s)/4);
   marker_msg->id = body.id * 100 + jointType;
   marker_msg->type = Marker::SPHERE;
 
